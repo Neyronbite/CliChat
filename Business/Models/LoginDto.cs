@@ -7,9 +7,11 @@ namespace Business.Models
         //TODO add error messages vor ModelState
         public int Id { get; set; }
         [MaxLength(50)]
+        [MinLength(3)]
+        [RegularExpression(@"^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$")]
         public string Username { get; set; }
         [MaxLength(100)]
-        [MinLength(6)]
+        [MinLength(3)]
         [Required]
         public string Password { get; set; }
     }

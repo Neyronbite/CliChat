@@ -11,8 +11,11 @@ namespace Data.Entities
     public class User : BaseEntity
     {
         [MaxLength(50)]
+        [MinLength(3)]
+        [RegularExpression(@"^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$")]
         public string Username { get; set; }
         [MaxLength(100)]
+        [MinLength(3)]
         [Required]
         public string Password { get; set; }
         [Required]

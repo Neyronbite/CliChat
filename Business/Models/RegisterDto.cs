@@ -11,11 +11,12 @@ namespace Business.Models
     {
         //TODO add error messages vor ModelState
         [MaxLength(50)]
-        [MinLength(4)]
+        [MinLength(3)]
+        [RegularExpression(@"^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$")]
         [Required]
         public string Username { get; set; }
         [MaxLength(100)]
-        [MinLength(6)]
+        [MinLength(3)]
         [Required]
         public string Password { get; set; }
         [Required]
