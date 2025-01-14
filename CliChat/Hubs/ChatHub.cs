@@ -114,7 +114,7 @@ namespace CliChat.Hubs
                 {
                     foreach (var cId in _userMapping.GetConnections(name))
                     {
-                        SendError(cId, new Exception("user is offline"));
+                        SendError(cId, new Exception("the user does not exist or is offline"));
                     }
                 }
             }
