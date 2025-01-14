@@ -20,7 +20,7 @@ namespace CliChat.Controllers
         [HttpGet("{username}")]
         public async Task<IActionResult> Get(string username)
         {
-            var userInfo = _userService.GetInfo(username);
+            var userInfo = await _userService.GetInfo(username);
             return Ok(userInfo);
         }
     }

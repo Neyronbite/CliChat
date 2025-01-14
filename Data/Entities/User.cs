@@ -15,7 +15,6 @@ namespace Data.Entities
         [MaxLength(100)]
         [Required]
         public string Password { get; set; }
-        [MaxLength(100)]
         [Required]
         public string PublicKey { get; set; }
     }

@@ -37,7 +37,7 @@ namespace CliChat.Controllers
 
             return Ok(new { Token = token });
         }
-        [HttpPut]
+        [HttpPut("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             //TODO validate with attribute

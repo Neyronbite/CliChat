@@ -79,9 +79,9 @@ namespace CliChat.Hubs
         /// it sends errors to "ReceiveError" function on client side
         /// </summary>
         /// <param name="err"></param>
-        private async void SendError(Exception err)
+        private async void SendError(string connectionId, Exception err)
         {
-            await Clients.All.SendAsync("ReceiveError", Context.User.GetClaim(JwtRegisteredClaimNames.Name), err.Message);
+            await Clients.Client(connectionId).SendAsync("ReceiveError", Context.User.GetClaim(JwtRegisteredClaimNames.Name), err.Message);
         }
 
         /// <summary>
@@ -112,7 +112,10 @@ namespace CliChat.Hubs
                 }
                 else
                 {
-                    SendError(new Exception("user is offline"));
+                    foreach (var cId in _userMapping.GetConnections(name))
+                    {
+                        SendError(cId, new Exception("user is offline"));
+                    }
                 }
             }
 
