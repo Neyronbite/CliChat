@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/CliChat/ChatDb.db-shm
+/CliChat/ChatDb.db-shm
+/CliChat/ChatDb.db-wal
