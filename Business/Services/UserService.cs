@@ -1,4 +1,5 @@
-﻿using Business.Interfaces;
+﻿using Business.Exceptions;
+using Business.Interfaces;
 using Business.Models;
 using Business.Utils;
 using Data.Entities;
@@ -40,15 +41,21 @@ namespace Business.Services
             }
             catch (InvalidOperationException)
             {
-                throw new Exception("Wrong Credentials");
-                //TODO
-                //throw new UserDoesNotExistsException();
+                throw new WronCredentialsException();
             }
         }
 
         public async Task<UserInfo> GetInfo(string username)
         {
-            var userEntity = await _unitOfWork.UserRepository.GetFirst(u => u.Username == username);
+            User userEntity;
+            try
+            {
+                userEntity = await _unitOfWork.UserRepository.GetFirst(u => u.Username == username);
+            }
+            catch (Exception)
+            {
+                throw new UserDoesNotExistException();
+            }
 
             var userInfo = new UserInfo()
             {
@@ -65,11 +72,10 @@ namespace Business.Services
         public async Task<LoginDto> Register(RegisterDto register)
         {
             var entitiyList = await _unitOfWork.UserRepository.Get(u => u.Username == register.Username, showDeleted: true);
+
             if (entitiyList.Count != 0)
             {
-                throw new Exception("user already exists");
-                //TODO
-                //throw new UserExistsException();
+                throw new UserExistException();
             }
          
             var user = new User();

@@ -12,7 +12,8 @@ namespace Business.Models
         //TODO add error messages vor ModelState
         [MaxLength(50)]
         [MinLength(3)]
-        [RegularExpression(@"^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$")]
+        [RegularExpression(@"^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$",
+            ErrorMessage = "Username must contain only letters, digits or '-', '_' symbols")]
         [Required]
         public string Username { get; set; }
         [MaxLength(100)]

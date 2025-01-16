@@ -1,4 +1,5 @@
-﻿using Business.Interfaces;
+﻿using Business.Exceptions;
+using Business.Interfaces;
 using Business.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,7 @@ namespace CliChat.Controllers
             //TODO validate with attribute
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                throw new ValidationException();
             }
 
             var user = await _userService.Check(loginDto);
@@ -43,7 +44,7 @@ namespace CliChat.Controllers
             //TODO validate with attribute
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                throw new ValidationException();
             }
 
             var user = await _userService.Register(registerDto);
