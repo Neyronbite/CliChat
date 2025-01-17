@@ -9,8 +9,11 @@ namespace Business.Models
 {
     public class ErrorModel
     {
-        public HttpStatusCode StatusCode { get; set; }
-        public string Message { get; set; }
-        public string? Suggestions { get; set; }
+        // TODO I dont understand how modelstate validation works,
+        // and why I can't throw new exception inside ActionFilter 
+        // Modelstate errors response sends before triggering OnActionExecuting
+        public HttpStatusCode Status { get; set; }
+        public string Title { get; set; }
+        public Dictionary<string, string[]> Errors { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Business.Exceptions;
 using Business.Models;
 using CliChat;
+using CliChat.Filters;
 using CliChat.Hubs;
 using Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -48,7 +49,12 @@ builder.Services.AddAuthorization();
 
 // Add services to the container.
 
+//builder.Services.AddControllers(opt =>
+//{
+//    opt.Filters.Add<ModelStateValidation>();
+//});
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -74,7 +80,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
@@ -97,21 +103,25 @@ app.UseExceptionHandler(exceptionHandlerApp =>
         {
             errResp = new ErrorModel()
             {
-                Message = err.Message,
-                StatusCode = err.StatusCode,
-                Suggestions = err.Suggestions
+                Title = err.Message,
+                Status = err.StatusCode,
+                Errors = new()
             };
 
-            context.Response.StatusCode = (int)errResp.StatusCode;
+            errResp.Errors.Add(err.Field, new[] { err.Message });
+
+            context.Response.StatusCode = (int)errResp.Status;
         }
         else
         {
             errResp = new ErrorModel()
             {
-                Message = "Server side error",
-                StatusCode = System.Net.HttpStatusCode.InternalServerError,
-                Suggestions = "Please try again later, or contact with our administration"
+                Title = "Server side error",
+                Status = System.Net.HttpStatusCode.InternalServerError,
+                Errors = new()
             };
+
+            errResp.Errors.Add("Server", new[] { "Something went wrong on server" });
 
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
         }

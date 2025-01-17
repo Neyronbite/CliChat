@@ -9,7 +9,6 @@ namespace Business.Models
 {
     public class RegisterDto
     {
-        //TODO add error messages vor ModelState
         [MaxLength(50)]
         [MinLength(3)]
         [RegularExpression(@"^[a-zA-Z0-9]+([._]?[a-zA-Z0-9]+)*$",
@@ -21,6 +20,8 @@ namespace Business.Models
         [Required]
         public string Password { get; set; }
         [Required]
+        [RegularExpression(@"^[-A-Za-z0-9+/]*={0,3}$",
+            ErrorMessage = "Public key must be base 64 encoded string")]
         public string PublicKey { get; set; }
     }
 }

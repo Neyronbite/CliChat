@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Data.Entities
 {
-    //Data Source=.\ChatDb.db;Version=3;
+    [Index(nameof(Username), IsUnique = true)]
     public class User : BaseEntity
     {
         [MaxLength(50)]
@@ -19,6 +20,10 @@ namespace Data.Entities
         [Required]
         public string Password { get; set; }
         [Required]
+        [RegularExpression(@"^[-A-Za-z0-9+/]*={0,3}$")]
         public string PublicKey { get; set; }
+
+        public ICollection<Message> SentMessages { get; set; }
+        public ICollection<Message> ReceivedMessages { get; set; }
     }
 }

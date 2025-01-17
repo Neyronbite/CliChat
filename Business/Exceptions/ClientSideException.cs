@@ -10,15 +10,11 @@ namespace Business.Exceptions
     public class ClientSideException : Exception
     {
         public HttpStatusCode StatusCode { get; set; }
-        public string? Suggestions { get; set; }
-        public ClientSideException(HttpStatusCode statusCode, string message) : base(message)
+        public string Field { get; set; }
+        public ClientSideException(HttpStatusCode statusCode, string message, string field) : base(message)
         {
             StatusCode = statusCode;
-        }
-        public ClientSideException(HttpStatusCode statusCode, string message, string suggestions) : base(message)
-        {
-            StatusCode = statusCode;
-            Suggestions = suggestions;
+            Field = field;
         }
     }
 }

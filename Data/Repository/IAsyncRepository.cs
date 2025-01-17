@@ -11,8 +11,21 @@ namespace Data.Repository
             string includeProperties = "",
             bool asNoTracking = false,
             bool showDeleted = false);
+        Task<List<TReturn>> Select<TReturn>(
+            Func<TEntity, TReturn> select,
+            Expression<Func<TEntity, bool>> filter = null,
+            Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
+            string includeProperties = "",
+            bool asNoTracking = false,
+            bool showDeleted = false);
         Task<TEntity> GetFirst(
             Expression<Func<TEntity, bool>> filter = null,
+            string includeProperties = "",
+            bool asNoTracking = false,
+            bool showDeleted = false);
+        Task<TEntity> GetFirst<TOption>(
+            Expression<Func<TEntity, bool>> filter = null,
+            Expression<Func<TEntity, TOption>> includeProperties = null,
             bool asNoTracking = false,
             bool showDeleted = false);
         Task<TEntity> GetByID(int id);

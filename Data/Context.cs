@@ -19,6 +19,9 @@ namespace Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<User>().HasMany(u => u.SentMessages).WithOne(m => m.FromUser).HasForeignKey(m => m.FromId);
+            modelBuilder.Entity<User>().HasMany(u => u.ReceivedMessages).WithOne(m => m.ToUser).HasForeignKey(m => m.ToId);
+
             modelBuilder.Entity<User>().HasData(new User
             {
                 Id = 1,

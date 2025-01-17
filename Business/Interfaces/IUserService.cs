@@ -17,6 +17,17 @@ namespace Business.Interfaces
         /// <param name="register"></param>
         /// <returns></returns>
         Task<LoginDto> Register(RegisterDto register);
+        /// <summary>
+        /// Gets user's username, public key, and if user is connected to chat hub, isOnline is true
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
         Task<UserInfo> GetInfo(string username);
+        /// <summary>
+        /// if user exist in db, returns true
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        Task<bool> UserExist(string username);
     }
 }

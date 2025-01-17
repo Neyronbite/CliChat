@@ -4,7 +4,6 @@ namespace Business.Models
 {
     public class LoginDto
     {
-        //TODO add error messages vor ModelState
         public int Id { get; set; }
         [MaxLength(50)]
         [MinLength(3)]

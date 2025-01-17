@@ -8,7 +8,7 @@ namespace Business.Exceptions
 {
     public class WronCredentialsException : ClientSideException
     {
-        public WronCredentialsException() : base(System.Net.HttpStatusCode.Conflict, "Wrong Credentials")
+        public WronCredentialsException() : base(System.Net.HttpStatusCode.Conflict, "Wrong Credentials", "User")
         {
         }
     }

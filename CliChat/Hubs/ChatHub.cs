@@ -16,10 +16,19 @@ namespace CliChat.Hubs
         /// and in hashset we add users connectionid and all other usefull info
         /// </summary>
         private readonly ConnectionMapping<string> _userMapping;
+        private readonly IUserService _userService;
+        private readonly IMessageService _messageService;
 
-        public ChatHub(ConnectionMapping<string> userMapping)
+        // getting username from jwt
+        private string CurrentUsername => Context.User.GetClaim(JwtRegisteredClaimNames.Name);
+        // getting current session connections
+        private IEnumerable<string> CurrentConnections => _userMapping.GetConnections(CurrentUsername);
+
+        public ChatHub(ConnectionMapping<string> userMapping, IUserService userService, IMessageService messageService)
         {
             _userMapping = userMapping;
+            _userService = userService;
+            _messageService = messageService;
         }
 
         /// <summary>
@@ -43,7 +52,23 @@ namespace CliChat.Hubs
         public async Task SendMessage(string message, string to)
         {
             //TODO handle message queues if offline
-            await DataTransferBetweenUsers("ReceiveMessage", message, to);
+            if (await _userService.UserExist(to))
+            {
+                await DataTransferBetweenUsers("ReceiveMessage", message, to);
+            }
+            else 
+            {
+                // Queueing message
+                await _messageService.Queue(
+                    new Business.Models.MessageModel()
+                    {
+                        Message = message,
+                        To = to,
+                        From = CurrentUsername
+                    });
+
+                SendError(CurrentConnections, new Exception("User is offline, queueing message"));
+            }
         }
 
         /// <summary>
@@ -54,7 +79,7 @@ namespace CliChat.Hubs
         /// <returns></returns>
         public override async Task OnConnectedAsync()
         {
-            var name = Context.User.GetClaim(JwtRegisteredClaimNames.Name);
+            var name = CurrentUsername;
             _userMapping.Add(name, Context.ConnectionId);
 
             await base.OnConnectedAsync();
@@ -67,7 +92,7 @@ namespace CliChat.Hubs
         /// <returns></returns>
         public override Task OnDisconnectedAsync(Exception? exception)
         {
-            string name = Context.User.GetClaim(JwtRegisteredClaimNames.Name);
+            string name = CurrentUsername;
 
             _userMapping.Remove(name, Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
@@ -81,7 +106,14 @@ namespace CliChat.Hubs
         /// <param name="err"></param>
         private async void SendError(string connectionId, Exception err)
         {
-            await Clients.Client(connectionId).SendAsync("ReceiveError", Context.User.GetClaim(JwtRegisteredClaimNames.Name), err.Message);
+            await Clients.Client(connectionId).SendAsync("ReceiveError", CurrentUsername, err.Message);
+        }
+        private async void SendError(IEnumerable<string> connectionIds, Exception err)
+        {
+            foreach (var connectionId in connectionIds)
+            {
+                await Clients.Client(connectionId).SendAsync("ReceiveError", CurrentUsername, err.Message);
+            }
         }
 
         /// <summary>
@@ -97,9 +129,6 @@ namespace CliChat.Hubs
         /// <returns></returns>
         private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, Action handleOfflineCase = null)
         {
-            //getting username from jwt
-            var name = Context.User.GetClaim(JwtRegisteredClaimNames.Name);
-
             //getting to connection id from ConnectionMappings dictionary
             var connectionIds = _userMapping.GetConnections(toUsername);
 
@@ -112,17 +141,14 @@ namespace CliChat.Hubs
                 }
                 else
                 {
-                    foreach (var cId in _userMapping.GetConnections(name))
-                    {
-                        SendError(cId, new Exception("the user does not exist or is offline"));
-                    }
+                    SendError(CurrentConnections, new Exception("the user does not exist or is offline"));
                 }
             }
 
             //sending message to all connected id's (devices)
             foreach (var connectionId in connectionIds)
             {
-                await Clients.Client(connectionId).SendAsync(remoteFunction, Context.User.GetClaim(JwtRegisteredClaimNames.Name), data);
+                await Clients.Client(connectionId).SendAsync(remoteFunction, CurrentUsername, data);
             }
         }
     }

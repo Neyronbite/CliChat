@@ -12,6 +12,7 @@ namespace Business
             IConfiguration configuration)
         {
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IMessageService, MessageService>();
             services.AddSingleton(typeof(ConnectionMapping<string>));
 
             return services;

@@ -1,6 +1,8 @@
 ﻿using Business.Exceptions;
 using Business.Interfaces;
 using Business.Models;
+using CliChat.Filters;
+using Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -24,9 +26,9 @@ namespace CliChat.Controllers
         }
 
         [HttpPost("login")]
+        //[ModelStateValidation]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            //TODO validate with attribute
             if (!ModelState.IsValid)
             {
                 throw new ValidationException();
@@ -39,11 +41,12 @@ namespace CliChat.Controllers
             return Ok(new { Token = token });
         }
         [HttpPut("register")]
+        //[ModelStateValidation]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
-            //TODO validate with attribute
             if (!ModelState.IsValid)
             {
+                // TODO customize returned error 
                 throw new ValidationException();
             }
 

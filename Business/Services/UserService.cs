@@ -69,6 +69,19 @@ namespace Business.Services
             return userInfo;
         }
 
+        public async Task<bool> UserExist(string username)
+        {
+            try
+            {
+                await _unitOfWork.UserRepository.GetFirst(u => u.Username == username);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public async Task<LoginDto> Register(RegisterDto register)
         {
             var entitiyList = await _unitOfWork.UserRepository.Get(u => u.Username == register.Username, showDeleted: true);

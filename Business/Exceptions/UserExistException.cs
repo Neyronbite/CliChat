@@ -8,7 +8,7 @@ namespace Business.Exceptions
 {
     public class UserExistException : ClientSideException
     {
-        public UserExistException() : base(System.Net.HttpStatusCode.Conflict, "User already exist")
+        public UserExistException() : base(System.Net.HttpStatusCode.Conflict, "User already exist", "User")
         {
         }
     }

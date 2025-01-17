@@ -8,7 +8,7 @@ namespace Business.Exceptions
 {
     public class ValidationException : ClientSideException
     {
-        public ValidationException() : base((System.Net.HttpStatusCode)400, "Validation failed")
+        public ValidationException() : base((System.Net.HttpStatusCode)400, "Validation failed", "ModelState")
         {
         }
     }

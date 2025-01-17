@@ -8,7 +8,7 @@ namespace Business.Exceptions
 {
     public class UserDoesNotExistException : ClientSideException
     {
-        public UserDoesNotExistException() : base(System.Net.HttpStatusCode.NotFound, "User Does not exist")
+        public UserDoesNotExistException() : base(System.Net.HttpStatusCode.NotFound, "User Does not exist", "User")
         {
         }
     }
