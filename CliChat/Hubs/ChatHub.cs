@@ -51,23 +51,25 @@ namespace CliChat.Hubs
         /// <returns></returns>
         public async Task SendMessage(string message, string to)
         {
-            //TODO handle message queues if offline
             if (await _userService.UserExist(to))
             {
-                await DataTransferBetweenUsers("ReceiveMessage", message, to);
-            }
-            else 
-            {
-                // Queueing message
-                await _messageService.Queue(
-                    new Business.Models.MessageModel()
-                    {
-                        Message = message,
-                        To = to,
-                        From = CurrentUsername
-                    });
+                await DataTransferBetweenUsers("ReceiveMessage", message, to, async () =>
+                {
+                    // Queueing message
+                    await _messageService.Queue(
+                        new Business.Models.MessageModel()
+                        {
+                            Message = message,
+                            To = to,
+                            From = CurrentUsername
+                        });
 
-                SendError(CurrentConnections, new Exception("User is offline, queueing message"));
+                    SendError(CurrentConnections, new Exception("User is offline, queueing message"));
+                });
+            }
+            else
+            {
+                SendError(CurrentConnections, new Exception("the user does not exist or is offline"));
             }
         }
 
@@ -127,7 +129,7 @@ namespace CliChat.Hubs
         /// <param name="toUsername">addresant user's username</param>
         /// <param name="handleOfflineCase">if user is offline, it executes this function or by default will send error</param>
         /// <returns></returns>
-        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, Action handleOfflineCase = null)
+        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, Func<Task> handleOfflineCase = null)
         {
             //getting to connection id from ConnectionMappings dictionary
             var connectionIds = _userMapping.GetConnections(toUsername);
@@ -137,7 +139,7 @@ namespace CliChat.Hubs
             {
                 if (handleOfflineCase != null)
                 {
-                    handleOfflineCase();
+                    await handleOfflineCase();
                 }
                 else
                 {
