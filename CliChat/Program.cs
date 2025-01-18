@@ -49,11 +49,13 @@ builder.Services.AddAuthorization();
 
 // Add services to the container.
 
-//builder.Services.AddControllers(opt =>
-//{
-//    opt.Filters.Add<ModelStateValidation>();
-//});
-builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+
+builder.Services.AddControllers(opt =>
+{
+    opt.Filters.Add<RateLimitFilterAttribute>();
+});
+//builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -1,6 +1,6 @@
-﻿namespace Business.Utils
+﻿namespace Business.Services
 {
-    public class ConnectionMapping<T>
+    public class ConnectionMappingService<T>
     {
         private readonly Dictionary<T, HashSet<string>> _connections =
             new Dictionary<T, HashSet<string>>();

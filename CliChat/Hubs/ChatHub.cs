@@ -1,4 +1,5 @@
 ﻿using Business.Interfaces;
+using Business.Services;
 using Business.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -15,7 +16,7 @@ namespace CliChat.Hubs
         /// string is users unique name (Username), 
         /// and in hashset we add users connectionid and all other usefull info
         /// </summary>
-        private readonly ConnectionMapping<string> _userMapping;
+        private readonly ConnectionMappingService<string> _userMapping;
         private readonly IUserService _userService;
         private readonly IMessageService _messageService;
 
@@ -24,7 +25,7 @@ namespace CliChat.Hubs
         // getting current session connections
         private IEnumerable<string> CurrentConnections => _userMapping.GetConnections(CurrentUsername);
 
-        public ChatHub(ConnectionMapping<string> userMapping, IUserService userService, IMessageService messageService)
+        public ChatHub(ConnectionMappingService<string> userMapping, IUserService userService, IMessageService messageService)
         {
             _userMapping = userMapping;
             _userService = userService;

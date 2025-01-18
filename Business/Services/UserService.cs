@@ -17,9 +17,9 @@ namespace Business.Services
     {
         IUnitOfWork _unitOfWork;
         IConfiguration _config;
-        ConnectionMapping<string> _userMappings;
+        ConnectionMappingService<string> _userMappings;
 
-        public UserService(IUnitOfWork unitOfWork, IConfiguration config, ConnectionMapping<string> userMappings)
+        public UserService(IUnitOfWork unitOfWork, IConfiguration config, ConnectionMappingService<string> userMappings)
         {
             _unitOfWork = unitOfWork;
             _config = config;

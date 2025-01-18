@@ -1,6 +1,5 @@
 ﻿using Business.Interfaces;
 using Business.Services;
-using Business.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +12,7 @@ namespace Business
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IMessageService, MessageService>();
-            services.AddSingleton(typeof(ConnectionMapping<string>));
+            services.AddSingleton(typeof(ConnectionMappingService<string>));
 
             return services;
         }
