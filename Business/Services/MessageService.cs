@@ -28,21 +28,31 @@ namespace Business.Services
 
             try
             {
-                userEntity = await _unitOfWork.UserRepository.GetFirst(u => u.Username == username, u => u.ReceivedMessages);
+                // I dont know why this is not working
+                // maybe sqlite is problem
+                // userEntity = await _unitOfWork.UserRepository.GetFirst(u => u.Username == username, u => u.ReceivedMessages);
+                userEntity = await _unitOfWork.UserRepository.GetFirst(u => u.Username == username);
             }
             catch (Exception)
             {
                 throw new UserDoesNotExistException();
             }
 
-            var messages = userEntity.ReceivedMessages.Select(m => new MessageModel()
+            var receivedMessages = await _unitOfWork.MessageRepository.Get(m => m.ToId == userEntity.Id);
+
+            if (receivedMessages == null || receivedMessages.Count == 0)
+            {
+                return new List<MessageModel>();
+            }
+
+            var messages = receivedMessages.Select(m => new MessageModel()
             {
                 From = m.From,
                 To = m.To,
                 Message = m.MessageEncrypted
             }).ToList();
 
-            foreach (var message in userEntity.ReceivedMessages)
+            foreach (var message in receivedMessages)
             {
                 _unitOfWork.MessageRepository.Delete(message);
             }

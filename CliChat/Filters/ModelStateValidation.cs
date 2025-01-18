@@ -12,7 +12,6 @@ namespace CliChat.Filters
         {
             if (!context.ModelState.IsValid)
             {
-                // TODO customize returned error 
                 throw new ValidationException();
             }
             base.OnActionExecuting(context);
@@ -21,7 +20,6 @@ namespace CliChat.Filters
         {
             if (!context.ModelState.IsValid)
             {
-                // TODO customize returned error 
                 throw new ValidationException();
             }
             return base.OnActionExecutionAsync(context, next);
