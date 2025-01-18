@@ -26,7 +26,7 @@ namespace CliChat.Controllers
         }
 
         [HttpPost("login")]
-        //[ModelStateValidation]
+        [RateLimitFilter]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
             if (!ModelState.IsValid)
@@ -41,7 +41,7 @@ namespace CliChat.Controllers
             return Ok(new { Token = token });
         }
         [HttpPut("register")]
-        //[ModelStateValidation]
+        [RateLimitFilter]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             if (!ModelState.IsValid)
