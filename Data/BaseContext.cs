@@ -23,7 +23,14 @@ namespace Data
             if (!optionsBuilder.IsConfigured)
             {
                 //TODO use configuration
-                optionsBuilder.UseSqlite("Data Source=.\\ChatDb.db;");
+                var path = Environment.GetEnvironmentVariable("DB_VOL");
+                path = path == null ? Environment.GetEnvironmentVariable("DB_VOL", EnvironmentVariableTarget.Machine) : path;
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                optionsBuilder.UseSqlite($"Data Source={path}\\ChatDb.db;");
 
                 optionsBuilder.UseSnakeCaseNamingConvention();
             }

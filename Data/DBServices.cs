@@ -20,16 +20,5 @@ namespace Data
 
             return services;
         }
-
-        public static IServiceCollection Migrate(this IServiceCollection services)
-        {
-            using (var scope = services.BuildServiceProvider().CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<Context>();
-                db.Database.Migrate();
-            }
-
-            return services;
-        }
     }
 }
