@@ -1,6 +1,0 @@
-@CliChat_HostAddress = http://localhost:5293
-
-GET {{CliChat_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

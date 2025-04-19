@@ -102,5 +102,11 @@ namespace Business.Services
 
             return new LoginDto() { Username = user.Username, Id = user.Id, Password = "passed" };
         }
+
+        public async Task Delete(string username)
+        {
+            var user = await _unitOfWork.UserRepository.GetFirst(u => u.Username == username);
+            _unitOfWork.UserRepository.Delete(user);
+        }
     }
 }

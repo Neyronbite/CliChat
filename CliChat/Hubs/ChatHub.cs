@@ -1,4 +1,5 @@
 ﻿using Business.Interfaces;
+using Business.Models;
 using Business.Services;
 using Business.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,7 @@ namespace CliChat.Hubs
         /// and in hashset we add users connectionid and all other usefull info
         /// </summary>
         private readonly ConnectionMappingService<string> _userMapping;
+        private readonly ConnectionMappingService<long> _groupMapping;
         private readonly IUserService _userService;
         private readonly IMessageService _messageService;
 
@@ -50,9 +52,45 @@ namespace CliChat.Hubs
         /// <param name="message">string message</param>
         /// <param name="to">addressant user's username</param>
         /// <returns></returns>
-        public async Task SendMessage(string message, string to)
+        public async Task SendMessage(string message, string to, bool isGroup = false)
         {
-            if (await _userService.UserExist(to))
+            if (isGroup)
+            {
+                // identifying group members
+                long groupId = long.Parse(to);
+                // TODO I need to change this function name
+                var usernames = _groupMapping.GetConnections(groupId);
+
+                if (!usernames.Contains(CurrentUsername))
+                {
+                    SendError(CurrentConnections, new Exception($"group {to} does not exist or you are not a group member"));
+                    return;
+                }
+
+                // sending group message as standart message
+                // but with custom from user format
+                // groupId-CurrentUsername
+                var fromUsername = $"{groupId}-{CurrentUsername}";
+
+                // sending message to group members
+                foreach (var username in usernames)
+                {
+                    await DataTransferBetweenUsers("ReceiveMessage", message, to, fromUsername, async () =>
+                    {
+                        // Queueing message
+                        await _messageService.Queue(
+                            new Business.Models.MessageModel()
+                            {
+                                Message = message,
+                                To = to,
+                                From = fromUsername
+                            });
+
+                        SendError(CurrentConnections, new Exception($"User {username} is offline, queueing message"));
+                    });
+                }
+            }
+            else if (await _userService.UserExist(to))
             {
                 await DataTransferBetweenUsers("ReceiveMessage", message, to, async () =>
                 {
@@ -65,13 +103,59 @@ namespace CliChat.Hubs
                             From = CurrentUsername
                         });
 
-                    SendError(CurrentConnections, new Exception("User is offline, queueing message"));
+                    SendError(CurrentConnections, new Exception($"User {to} is offline, queueing message"));
                 });
             }
             else
             {
-                SendError(CurrentConnections, new Exception("the user does not exist or is offline"));
+                SendError(CurrentConnections, new Exception($"the user {to} does not exist or is offline"));
             }
+        }
+
+        /// <summary>
+        /// Creates a temporary group
+        /// Sends Exchange requests to users
+        /// </summary>
+        /// <param name="users">usernames of that group</param>
+        /// <returns></returns>
+        public async Task CreateGroup(string[] users)
+        {
+            long groupId = Random.Shared.NextInt64();
+            _groupMapping.Add(groupId, CurrentUsername);
+
+            foreach (var user in users)
+            {
+                _groupMapping.Add(groupId, user);
+
+                var exchObj = new GroupKeyExchangeModel()
+                {
+                    OwnerUsername = CurrentUsername,
+                    To = user,
+                    From = CurrentUsername,
+                    ServerRequest = true
+                };
+
+                await DataTransferBetweenUsers("GroupKeyExchange", exchObj, user);
+            }
+        }
+
+        /// <summary>
+        /// Handles key exchange process between group members and owner
+        /// </summary>
+        /// <param name="data">key exchange model</param>
+        /// <returns></returns>
+        public async Task GroupKeyExchange(GroupKeyExchangeModel data)
+        {
+            long groupId = long.Parse(data.GroupId);
+            var groupMembers = _groupMapping.GetConnections(groupId);
+
+            if (!groupMembers.Contains(CurrentUsername))
+            {
+                SendError(CurrentConnections, new Exception("what are you trying to do???"));
+                return;
+            }
+
+            await DataTransferBetweenUsers("GroupKeyExchange", data, data.To);
         }
 
         /// <summary>
@@ -130,7 +214,7 @@ namespace CliChat.Hubs
         /// <param name="toUsername">addresant user's username</param>
         /// <param name="handleOfflineCase">if user is offline, it executes this function or by default will send error</param>
         /// <returns></returns>
-        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, Func<Task> handleOfflineCase = null)
+        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, string fromUsername, Func<Task> handleOfflineCase = null)
         {
             //getting to connection id from ConnectionMappings dictionary
             var connectionIds = _userMapping.GetConnections(toUsername);
@@ -144,15 +228,19 @@ namespace CliChat.Hubs
                 }
                 else
                 {
-                    SendError(CurrentConnections, new Exception("the user does not exist or is offline"));
+                    SendError(CurrentConnections, new Exception($"the user {toUsername} does not exist or is offline"));
                 }
             }
 
             //sending message to all connected id's (devices)
             foreach (var connectionId in connectionIds)
             {
-                await Clients.Client(connectionId).SendAsync(remoteFunction, CurrentUsername, data);
+                await Clients.Client(connectionId).SendAsync(remoteFunction, fromUsername, data);
             }
+        }
+        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, Func<Task> handleOfflineCase = null)
+        {
+            await DataTransferBetweenUsers(remoteFunction, data, toUsername, CurrentUsername, handleOfflineCase);
         }
     }
 }

@@ -9,8 +9,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web.Http;
 
@@ -18,13 +20,28 @@ var builder = WebApplication.CreateBuilder(args);
 
 if (!builder.Environment.IsDevelopment())
 {
-    builder.WebHost.ConfigureKestrel(options =>
+
+    var certPath = Environment.GetEnvironmentVariable("CERT_PATH");
+    certPath = certPath == null ? Environment.GetEnvironmentVariable("CERT_PATH", EnvironmentVariableTarget.Machine) : certPath;
+    var certPassword = Environment.GetEnvironmentVariable("CERT_PASSWORD");
+    certPassword = certPassword == null ? Environment.GetEnvironmentVariable("CERT_PASSWORD", EnvironmentVariableTarget.Machine) : certPassword;
+
+    if (!string.IsNullOrEmpty(certPath) && !string.IsNullOrEmpty(certPassword))
     {
-        options.Listen(System.Net.IPAddress.Parse("0.0.0.0"), 5000, conf =>
+        var cert = new X509Certificate2(certPath, certPassword);
+
+        builder.WebHost.ConfigureKestrel(options =>
         {
-            conf.UseHttps();
+            options.Listen(System.Net.IPAddress.Parse("0.0.0.0"), 443, conf =>
+            {
+                conf.UseHttps(cert);
+            });
         });
-    });
+    }
+    else
+    {
+        throw new InvalidOperationException("Certificate path or password (CERT_PASSWORD, CERT_PATH) environment variables are missing.");
+    }
 }
 
 builder.Services.AddAuthentication(x =>
@@ -82,12 +99,29 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<ChatHub>("/chat");
+
+// Just an html, where you need to describe connection methods
+app.UseStaticFiles(new StaticFileOptions()
+{
+    FileProvider = new PhysicalFileProvider(Environment.GetEnvironmentVariable("STATIC_PATH") == null 
+        ? Environment.GetEnvironmentVariable("STATIC_PATH", EnvironmentVariableTarget.Machine)
+        : Environment.GetEnvironmentVariable("STATIC_PATH")),
+    RequestPath = new PathString("")
+});
+// redirecting / to /index.html
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/")
+    {
+        context.Response.Redirect("/index.html");
+        return;
+    }
+    await next();
+});
 
 app.UseExceptionHandler(exceptionHandlerApp =>
 {
@@ -137,6 +171,10 @@ app.Run();
 
 // // TODO
 //Global 2 bana mncae
-//1.    message queueing
-//2.    error handling in Api
+//1.    message queueing enabled in message model
+//2.    ssltls certificates
+//3.    UI commands starting with /
+//4.    temporary groups
+//5.    siktir UI alerts, luchshe sax messageov arvi
+//6.    better logging 
 //et e hedo

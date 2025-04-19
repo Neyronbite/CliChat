@@ -29,5 +29,6 @@ namespace Business.Interfaces
         /// <param name="username"></param>
         /// <returns></returns>
         Task<bool> UserExist(string username);
+        Task Delete(string username);
     }
 }

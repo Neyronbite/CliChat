@@ -14,7 +14,7 @@ namespace Business.Services
         private static readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
 
         // TODO use configuration
-        private static int RequestLimit = 5;
+        private static int RequestLimit = 10;
         private static int TimeWindowInSeconds = 7;
         private static int BanTimeInMinutes = 15;
 

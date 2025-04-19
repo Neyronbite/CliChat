@@ -13,6 +13,7 @@ namespace Business
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IMessageService, MessageService>();
             services.AddSingleton(typeof(ConnectionMappingService<string>));
+            services.AddSingleton(typeof(ConnectionMappingService<long>));
 
             return services;
         }
