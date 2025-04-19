@@ -52,12 +52,27 @@ namespace CliChat.Hubs
         /// <param name="message">string message</param>
         /// <param name="to">addressant user's username</param>
         /// <returns></returns>
-        public async Task SendMessage(string message, string to, bool isGroup = false)
+        public async Task SendMessage(string message, string to)
         {
-            if (isGroup)
+            if (await _userService.UserExist(to))
+            {
+                await DataTransferBetweenUsers("ReceiveMessage", message, to, async () =>
+                {
+                    // Queueing message
+                    await _messageService.Queue(
+                        new Business.Models.MessageModel()
+                        {
+                            Message = message,
+                            To = to,
+                            From = CurrentUsername
+                        });
+
+                    SendError(CurrentConnections, new Exception($"User {to} is offline, queueing message"));
+                });
+            }
+            else if (long.TryParse(to, out long groupId) && _groupMapping.GetConnections(groupId).Any())
             {
                 // identifying group members
-                long groupId = long.Parse(to);
                 // TODO I need to change this function name
                 var usernames = _groupMapping.GetConnections(groupId);
 
@@ -89,22 +104,6 @@ namespace CliChat.Hubs
                         SendError(CurrentConnections, new Exception($"User {username} is offline, queueing message"));
                     });
                 }
-            }
-            else if (await _userService.UserExist(to))
-            {
-                await DataTransferBetweenUsers("ReceiveMessage", message, to, async () =>
-                {
-                    // Queueing message
-                    await _messageService.Queue(
-                        new Business.Models.MessageModel()
-                        {
-                            Message = message,
-                            To = to,
-                            From = CurrentUsername
-                        });
-
-                    SendError(CurrentConnections, new Exception($"User {to} is offline, queueing message"));
-                });
             }
             else
             {
