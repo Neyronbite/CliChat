@@ -6,6 +6,7 @@ namespace Data
     public class Context : BaseContext
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         public Context() : base()
         {
@@ -19,20 +20,10 @@ namespace Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>().HasMany(u => u.SentMessages).WithOne(m => m.FromUser).HasForeignKey(m => m.FromId);
+            // I am commenting this line, because I realize that 
+            // it will not work with temporary groups
+            //modelBuilder.Entity<User>().HasMany(u => u.SentMessages).WithOne(m => m.FromUser).HasForeignKey(m => m.FromId);
             modelBuilder.Entity<User>().HasMany(u => u.ReceivedMessages).WithOne(m => m.ToUser).HasForeignKey(m => m.ToId);
-
-            modelBuilder.Entity<User>().HasData(new User
-            {
-                Id = 1,
-                CreationTime = DateTime.Now,
-                UpdateTime = DateTime.Now,
-                IsDeleted = false,
-                Username = "admin",
-                //RockAndStoneMyBrother
-                Password = @"$2a$10$xONPZP9LFxq49VXuO3uuZ.IPcWHkAXsrsGtM.uWRgQX89DSx0JPrK",
-                PublicKey = "test"
-            });
         }
     }
 }

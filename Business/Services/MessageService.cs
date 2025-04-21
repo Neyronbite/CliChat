@@ -64,12 +64,12 @@ namespace Business.Services
 
         public async Task Queue(MessageModel message)
         {
-            var from = await _unitOfWork.UserRepository.GetFirst(u => u.Username == message.From);
+            //var from = await _unitOfWork.UserRepository.GetFirst(u => u.Username == message.From);
             var to = await _unitOfWork.UserRepository.GetFirst(u => u.Username == message.To);
 
             var messageEntity = new Message()
             {
-                FromId = from.Id,
+                //FromId = from.Id,
                 ToId = to.Id,
                 From = message.From,
                 To = message.To,

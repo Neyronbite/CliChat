@@ -15,6 +15,7 @@ namespace Business.Models
         public bool ServerRequest { get; set; }
         public bool ExchangeRequest { get; set; }
         public bool ExchangeResponse { get; set; }
-        public string ExchangeKey { get; set; }
+        public bool ForgotKeyRequest { get; set; }
+        public string PrivateKey { get; set; }
     }
 }

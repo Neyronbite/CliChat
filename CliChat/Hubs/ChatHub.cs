@@ -2,6 +2,7 @@
 using Business.Models;
 using Business.Services;
 using Business.Utils;
+using Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.IdentityModel.Tokens.Jwt;
@@ -27,11 +28,12 @@ namespace CliChat.Hubs
         // getting current session connections
         private IEnumerable<string> CurrentConnections => _userMapping.GetConnections(CurrentUsername);
 
-        public ChatHub(ConnectionMappingService<string> userMapping, IUserService userService, IMessageService messageService)
+        public ChatHub(ConnectionMappingService<string> userMapping, ConnectionMappingService<long> groupMapping, IUserService userService, IMessageService messageService)
         {
             _userMapping = userMapping;
             _userService = userService;
             _messageService = messageService;
+            _groupMapping = groupMapping;
         }
 
         /// <summary>
@@ -84,21 +86,26 @@ namespace CliChat.Hubs
 
                 // sending group message as standart message
                 // but with custom from user format
-                // groupId-CurrentUsername
-                var fromUsername = $"{groupId}-{CurrentUsername}";
+                // groupId:CurrentUsername
+                var fromUsername = $"{groupId}:{CurrentUsername}";
 
                 // sending message to group members
                 foreach (var username in usernames)
                 {
-                    await DataTransferBetweenUsers("ReceiveMessage", message, to, fromUsername, async () =>
+                    if (username == CurrentUsername)
+                    {
+                        continue;
+                    }
+                    await DataTransferBetweenUsers("ReceiveMessage", message, username, fromUsername, async () =>
                     {
                         // Queueing message
                         await _messageService.Queue(
                             new Business.Models.MessageModel()
                             {
                                 Message = message,
-                                To = to,
-                                From = fromUsername
+                                To = username,
+                                From = groupId.ToString()
+                                // TODO maybe add isGroupMessage to message model, and fromUsername IDK
                             });
 
                         SendError(CurrentConnections, new Exception($"User {username} is offline, queueing message"));
@@ -122,6 +129,15 @@ namespace CliChat.Hubs
             long groupId = Random.Shared.NextInt64();
             _groupMapping.Add(groupId, CurrentUsername);
 
+            // Notifying owner, that group was created
+            var ownerExchObj = new GroupKeyExchangeModel()
+            {
+                OwnerUsername = CurrentUsername,
+                ServerRequest = true,
+                GroupId = groupId.ToString()
+            };
+            await DataTransferBetweenUsers("CreateGroup", ownerExchObj, CurrentUsername, specifyFromUser: false);
+
             foreach (var user in users)
             {
                 _groupMapping.Add(groupId, user);
@@ -131,10 +147,11 @@ namespace CliChat.Hubs
                     OwnerUsername = CurrentUsername,
                     To = user,
                     From = CurrentUsername,
-                    ServerRequest = true
+                    ServerRequest = true,
+                    GroupId = groupId.ToString()
                 };
-
-                await DataTransferBetweenUsers("GroupKeyExchange", exchObj, user);
+                // GroupKeyExchange
+                await DataTransferBetweenUsers("GroupKeyExchange", exchObj, user, specifyFromUser: false);
             }
         }
 
@@ -154,7 +171,7 @@ namespace CliChat.Hubs
                 return;
             }
 
-            await DataTransferBetweenUsers("GroupKeyExchange", data, data.To);
+            await DataTransferBetweenUsers("GroupKeyExchange", data, data.To, specifyFromUser: false);
         }
 
         /// <summary>
@@ -213,7 +230,7 @@ namespace CliChat.Hubs
         /// <param name="toUsername">addresant user's username</param>
         /// <param name="handleOfflineCase">if user is offline, it executes this function or by default will send error</param>
         /// <returns></returns>
-        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, string fromUsername, Func<Task> handleOfflineCase = null)
+        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, string fromUsername, Func<Task> handleOfflineCase = null, bool specifyFromUser = true)
         {
             //getting to connection id from ConnectionMappings dictionary
             var connectionIds = _userMapping.GetConnections(toUsername);
@@ -234,12 +251,22 @@ namespace CliChat.Hubs
             //sending message to all connected id's (devices)
             foreach (var connectionId in connectionIds)
             {
-                await Clients.Client(connectionId).SendAsync(remoteFunction, fromUsername, data);
+                // I decited to do this grdon
+                // If we manually write specifyFromUser as false
+                // that means we want to send group exchange message
+                if (specifyFromUser)
+                {
+                    await Clients.Client(connectionId).SendAsync(remoteFunction, fromUsername, data);
+                }
+                else
+                {
+                    await Clients.Client(connectionId).SendAsync(remoteFunction, data);
+                }
             }
         }
-        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, Func<Task> handleOfflineCase = null)
+        private async Task DataTransferBetweenUsers(string remoteFunction, object data, string toUsername, Func<Task> handleOfflineCase = null, bool specifyFromUser = true)
         {
-            await DataTransferBetweenUsers(remoteFunction, data, toUsername, CurrentUsername, handleOfflineCase);
+            await DataTransferBetweenUsers(remoteFunction, data, toUsername, CurrentUsername, handleOfflineCase, specifyFromUser);
         }
     }
 }
