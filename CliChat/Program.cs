@@ -18,7 +18,7 @@ using System.Web.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (/*!builder.Environment.IsDevelopment()*/true)
+if (!builder.Environment.IsDevelopment())
 {
     //getting certificates
     var certPath = Environment.GetEnvironmentVariable("CERT_PATH");

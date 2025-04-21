@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Welcome</title>
+</head>
+<body>
+	<div style="font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto;">
+	  <h1 style="text-align: center; color: #333;">Welcome to Mi(j)Chat</h1>
+	  <h2 style="color: #444;">Instructions Below</h2>
+
+	  <p>
+	    Mi(j)Chat is a secure and anonymous CLI chat application that uses end-to-end encryption.
+	    Messages are only stored temporarily when the recipient is offline, and are deleted after delivery.
+	  </p>
+
+	  <h3 style="color: #444;">Connecting to the Server</h3>
+	  <p>To connect and start using Mi(j)Chat, run the application with the appropriate arguments:</p>
+
+	  <pre style="background-color: #f4f4f4; padding: 10px; border-left: 3px solid #ccc;">
+	Register:
+	./CliChatClient -r -u your_username -s server_address:port
+
+	Login:
+	./CliChatClient -l -u your_username -s server_address:port
+	  </pre>
+
+	  <p>
+	    Add <code>--ignore-ssl</code> if you're using a self-signed certificate.<br>
+	    Add <code>--unicode</code> if you want Unicode character support.
+	  </p>
+
+	  <h3 style="color: #444;">Navigation Keys</h3>
+	  <ul>
+	    <li><strong>Backspace</strong> - Delete last character</li>
+	    <li><strong>Tab</strong> - Autocomplete previously entered names</li>
+	    <li><strong>Esc</strong> - Clear autocomplete memory</li>
+	    <li><strong>Up/Down</strong> - Browse message history</li>
+	    <li><strong>Page Up/Down</strong> - Scroll chat window</li>
+	  </ul>
+
+	  <h3 style="color: #444;">Main Commands</h3>
+	  <ul>
+	    <li><code>/add-group user1 user2 ...</code> - Create a temporary end-to-end encrypted group chat</li>
+	    <li>To send a message: simply type <code>username message</code></li>
+	  </ul>
+
+	  <h3 style="color: #444;">Security Notes</h3>
+	  <ul>
+	    <li>RSA key pairs are generated on registration. Your private key is password-protected and saved locally.</li>
+	    <li>Each chat session uses a securely exchanged AES key.</li>
+	    <li>Server does not store any messages or user data after delivery.</li>
+	  </ul>
+
+	  <p style="margin-top: 30px; font-style: italic; color: #666;">
+	    For best experience, keep your private key secure and never share your password with anyone.
+	  </p>
+	</div>
+</body>
+</html>
