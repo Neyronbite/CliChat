@@ -1,0 +1,16 @@
+services:
+  michat:
+    image: michat:1.1
+    container_name: michat
+    restart: unless-stopped
+    volumes:
+      - "/var/cert/michat:/var/michat-cert"
+      - "michat-db:/var/michat-db"
+    ports:
+      - "443:443"
+    environment:
+      - "JWT_SECRET=YourCustomJwtToken123qhJVMV4ua4zcy7+tAOJaJB+86vYyYIqEaQGyVaQiw6k="
+      - "CERT_PASSWORD=1234"
+
+volumes:
+  michat-db:
